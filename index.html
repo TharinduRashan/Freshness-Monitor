@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FreshSense Pro | Smart Food Freshness Dashboard</title>
+    <meta name="description" content="Premium IoT dashboard for real-time food freshness monitoring. Track temperature, humidity, gas levels, and system status with an Apple-inspired interface." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- TOP NAVIGATION BAR                                  -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <header id="top-nav" class="top-nav">
+        <div class="nav-inner">
+            <div class="nav-brand">
+                <span class="brand-name">FreshSense Pro</span>
+                <div id="system-status-chip" class="status-chip status-chip--fresh">
+                    <span class="status-chip__dot"></span>
+                    <span class="status-chip__text">System Optimal</span>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-disconnect hidden" id="btn-disconnect" title="Disconnect">
+                    <span class="material-symbols-outlined" style="font-size:18px;">power_settings_new</span>
+                    <span class="btn-disconnect__text">Disconnect</span>
+                </button>
+                <div id="wifi-status" class="nav-icon-btn" title="Wi-Fi Disconnected">
+                    <span class="material-symbols-outlined" style="font-size:20px;">wifi_off</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- MAIN CONTENT                                        -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <main class="main-content">
+
+        <!-- HERO SECTION -->
+        <section class="hero" id="hero-section">
+            <div class="hero__text">
+                <span class="overline">Atmospheric Integrity</span>
+                <h1 class="hero__title" id="hero-title">Kitchen Central</h1>
+                <p class="hero__subtitle" id="hero-subtitle">No device connected. Connect your ESP32 or start demo mode.</p>
+            </div>
+            <div class="hero__status-card" id="hero-status-card">
+                <div>
+                    <span class="overline" style="margin-bottom:4px; display:block;">Status</span>
+                    <span class="hero__status-value" id="hero-status-value">Offline</span>
+                </div>
+                <div class="hero__status-icon" id="hero-status-icon">
+                    <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">link_off</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONNECTION OVERLAY -->
+        <div class="connect-overlay" id="connect-overlay">
+            <div class="connect-overlay__card">
+                <div class="connect-overlay__icon">
+                    <span class="material-symbols-outlined">sensors</span>
+                </div>
+                <h2 class="connect-overlay__title">Connect Your Device</h2>
+                <p class="connect-overlay__desc">Enter your ESP32 IP address to connect, or start a demo to preview the dashboard.</p>
+
+                <div class="connect-overlay__form">
+                    <div class="connect-input-group">
+                        <input type="text" class="connect-input" id="esp-ip-input" placeholder="ESP32 IP  (e.g. 192.168.1.100)" />
+                        <select class="connect-select" id="connection-method">
+                            <option value="rest">REST API</option>
+                            <option value="websocket">WebSocket</option>
+                        </select>
+                    </div>
+                    <p class="connect-error hidden" id="connect-error"></p>
+                    <button class="connect-btn connect-btn--primary" id="btn-connect-esp">
+                        <span class="material-symbols-outlined" style="font-size:18px;">cable</span>
+                        Connect to ESP32
+                    </button>
+                </div>
+
+                <div class="connect-overlay__divider">
+                    <span>or</span>
+                </div>
+
+                <button class="connect-btn connect-btn--secondary" id="btn-start-demo">
+                    <span class="material-symbols-outlined" style="font-size:18px;">play_circle</span>
+                    Start Demo Mode
+                </button>
+            </div>
+        </div>
+
+        <!-- BENTO GRID -->
+        <div class="bento-grid">
+
+            <!-- ─── METRICS COLUMN ─── -->
+            <div class="metrics-col">
+
+                <!-- Temperature Card -->
+                <div class="metric-card" id="card-temperature">
+                    <div class="metric-card__header">
+                        <div class="metric-card__icon-wrap">
+                            <span class="material-symbols-outlined">device_thermostat</span>
+                        </div>
+                        <span class="metric-card__badge" id="temp-badge">Offline</span>
+                    </div>
+                    <div class="metric-card__body">
+                        <h3 class="metric-card__value" id="temp-value">—<span class="metric-card__unit">°C</span></h3>
+                        <p class="metric-card__label">Internal Temperature</p>
+                    </div>
+                    <div class="metric-card__sparkline" id="temp-sparkline"></div>
+                </div>
+
+                <!-- Humidity Card -->
+                <div class="metric-card" id="card-humidity">
+                    <div class="metric-card__header">
+                        <div class="metric-card__icon-wrap">
+                            <span class="material-symbols-outlined">humidity_percentage</span>
+                        </div>
+                        <span class="metric-card__badge" id="humidity-badge">Offline</span>
+                    </div>
+                    <div class="metric-card__body">
+                        <h3 class="metric-card__value" id="humidity-value">—<span class="metric-card__unit">%</span></h3>
+                        <p class="metric-card__label">Relative Humidity</p>
+                    </div>
+                    <div class="metric-card__sparkline" id="humidity-sparkline"></div>
+                </div>
+
+                <!-- Gas Level Card -->
+                <div class="metric-card" id="card-gas">
+                    <div class="metric-card__header">
+                        <div class="metric-card__icon-wrap">
+                            <span class="material-symbols-outlined">air</span>
+                        </div>
+                        <span class="metric-card__badge" id="gas-badge">Offline</span>
+                    </div>
+                    <div class="metric-card__body">
+                        <h3 class="metric-card__value" id="gas-value">— <span class="metric-card__unit">ppm</span></h3>
+                        <p class="metric-card__label">Gas Level (MQ-135)</p>
+                    </div>
+                    <div class="metric-card__sparkline" id="gas-sparkline"></div>
+                </div>
+
+                <!-- Box Status Card -->
+                <div class="metric-card" id="card-box">
+                    <div class="metric-card__header">
+                        <div class="metric-card__icon-wrap">
+                            <span class="material-symbols-outlined">kitchen</span>
+                        </div>
+                        <div class="metric-card__badge metric-card__badge--chip" id="box-badge">Offline</div>
+                    </div>
+                    <div class="metric-card__body">
+                        <h3 class="metric-card__value" id="box-value">—</h3>
+                        <p class="metric-card__label">Storage Chamber Status</p>
+                    </div>
+                </div>
+
+                <!-- CHART AREA -->
+                <div class="chart-card" id="chart-card">
+                    <div class="chart-card__header">
+                        <div>
+                            <h2 class="chart-card__title">Metric Trends</h2>
+                            <p class="chart-card__subtitle">Last 24 Hours</p>
+                        </div>
+                        <div class="chart-card__tabs">
+                            <button class="chart-tab chart-tab--active" id="chart-tab-live">Live</button>
+                            <button class="chart-tab" id="chart-tab-history">History</button>
+                        </div>
+                    </div>
+                    <div class="chart-card__canvas-wrap">
+                        <canvas id="trends-chart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ─── SIDE PANEL ─── -->
+            <div class="side-col">
+
+                <!-- Freshness Meter -->
+                <div class="panel-card" id="freshness-panel">
+                    <h2 class="panel-card__title">Freshness Meter</h2>
+                    <div class="freshness-bar-track">
+                        <div class="freshness-bar-fill" id="freshness-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="freshness-labels">
+                        <span class="freshness-labels__left">Spoiled</span>
+                        <span class="freshness-labels__right" id="freshness-percent">No Data</span>
+                    </div>
+                </div>
+
+                <!-- Module Controls -->
+                <div class="panel-card panel-card--grow" id="controls-panel">
+                    <h2 class="panel-card__title">Module Controls</h2>
+                    <div class="control-list">
+                        <!-- Fan -->
+                        <div class="control-item" id="control-fan">
+                            <div class="control-item__info">
+                                <div class="control-item__icon">
+                                    <span class="material-symbols-outlined">cyclone</span>
+                                </div>
+                                <div>
+                                    <p class="control-item__name">Circulation Fan</p>
+                                    <p class="control-item__status control-item__status--active" id="fan-status-text">Running</p>
+                                </div>
+                            </div>
+                            <label class="apple-toggle" id="toggle-fan">
+                                <input type="checkbox" checked />
+                                <span class="apple-toggle__track"></span>
+                            </label>
+                        </div>
+                        <!-- RGB LED -->
+                        <div class="control-item" id="control-led">
+                            <div class="control-item__info">
+                                <div class="control-item__icon">
+                                    <span class="material-symbols-outlined">light_mode</span>
+                                </div>
+                                <div>
+                                    <p class="control-item__name">RGB LED</p>
+                                    <p class="control-item__status" id="led-status-text">Auto Mode</p>
+                                </div>
+                            </div>
+                            <label class="apple-toggle" id="toggle-led">
+                                <input type="checkbox" checked />
+                                <span class="apple-toggle__track"></span>
+                            </label>
+                        </div>
+                        <!-- Buzzer -->
+                        <div class="control-item control-item--muted" id="control-buzzer">
+                            <div class="control-item__info">
+                                <div class="control-item__icon">
+                                    <span class="material-symbols-outlined">volume_up</span>
+                                </div>
+                                <div>
+                                    <p class="control-item__name">Alert Buzzer</p>
+                                    <p class="control-item__status" id="buzzer-status-text">Muted</p>
+                                </div>
+                            </div>
+                            <label class="apple-toggle" id="toggle-buzzer">
+                                <input type="checkbox" />
+                                <span class="apple-toggle__track"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Log -->
+                <div class="panel-card panel-card--dim" id="log-panel">
+                    <div class="log-header">
+                        <h2 class="panel-card__title">System Log</h2>
+                        <span class="material-symbols-outlined log-header__icon">history</span>
+                    </div>
+                    <div class="log-feed hide-scrollbar" id="log-feed">
+                        <!-- Log entries rendered by JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
